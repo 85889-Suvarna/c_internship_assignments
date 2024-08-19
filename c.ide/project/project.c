@@ -1,3 +1,4 @@
+#include "project.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -6,77 +7,9 @@
 #include <errno.h>
 #include <dirent.h>
 
-#define PROJECT_EXT ".proj"
-#define MAX_FILES 10
-#define FILENAME_LEN 40
-#define COMMAND_LEN 1024
-
-typedef struct {
-    int cnt;
-    char files[MAX_FILES][FILENAME_LEN];
-} proj_t;
-
 char initial_path[100];
 char project_name[100];
 char project_file[100];
-
-void create_project_dir(const char *dir_path);
-void create_project_file(const char *proj_name, proj_t *project);
-void load_project(const char *proj_name, proj_t *project);
-void save_project(const char *proj_name, proj_t *project);
-void add_file_to_project(proj_t *project, const char *filename);
-void compile_and_run(proj_t *project, const char *exec_name);
-void build_project(const char *filename);
-void clean_project(const char *proj_name);
-void display_menu();
-void handle_menu(proj_t *project, const char *proj_name);
-void proj_init(proj_t *project);
-void new_file(proj_t *project, const char *proj_name);
-void open_file(proj_t *project);
-void delete_file(proj_t *project, const char *proj_name);
-void run_project_with_args(const char *exec_name);
-void link_files(proj_t *project, const char *output);
-void debug_project(const char *exec_name);
-void check_memory_leaks(const char *exec_name);
-
-int main(int argc, char *argv[]) {
-    if (argc != 3) {
-        fprintf(stderr, "Usage: %s <project_dirpath> <project_name>\n", argv[0]);
-        exit(1);
-    }
-
-    strcpy(initial_path, argv[1]);
-    strcpy(project_name, argv[2]);
-
-    create_project_dir(initial_path);
-    if (chdir(initial_path) != 0) {
-        perror("Failed to change directory");
-        exit(1);
-    }
-
-    snprintf(project_file, sizeof(project_file), "%s.proj", project_name);
-    printf("Final Project file is : %s\n", project_file);
-
-    proj_t project;
-    proj_init(&project);
-
-    FILE *fd = fopen(project_file, "rb");
-    if (fd == NULL) {
-        if (errno == ENOENT) {
-            create_project_file(project_file, &project);
-        } else {
-            perror("Failed to open project file");
-            exit(1);
-        }
-    } else {
-        fclose(fd);
-    }
-
-    load_project(project_file, &project);
-    handle_menu(&project, project_file);
-
-    return 0;
-}
 
 void create_project_dir(const char *dir_path) {
     struct stat st = {0};
@@ -178,7 +111,6 @@ void link_files(proj_t *project, const char *output) {
     }
 }
 
-
 void clean_project(const char *proj_name) {
     DIR *dir;
     struct dirent *entry;
@@ -218,7 +150,6 @@ void clean_project(const char *proj_name) {
 
     closedir(dir);
 }
-
 
 void new_file(proj_t *project, const char *proj_name) {
     if (project->cnt >= MAX_FILES) {
@@ -419,13 +350,11 @@ void debug_project(const char *exec_name) {
 }
 
 void check_memory_leaks(const char *exe_file) {
-   
-
     char command[256];
     snprintf(command, sizeof(command), "drmemory -batch -brief -- %s", exe_file);
     printf("Running memory leak check...\n");
     if (system(command) == -1) {
-        perror("Failed to run valgrind");
+        perror("Failed to run drmemory");
         exit(1);
     }
 }
